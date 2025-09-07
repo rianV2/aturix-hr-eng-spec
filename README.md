@@ -234,16 +234,16 @@ graph TB
     end
     
     subgraph "Database & Storage"
-        SUPABASE[(Supabase PostgreSQL)]
+        POSTGRES[(PostgreSQL Database)]
         REDIS[(Redis Cache)]
-        STORAGE[(Supabase Storage)]
+        STORAGE[(AWS S3 Storage)]
     end
     
     subgraph "External APIs"
         REKOGNITION[AWS Rekognition]
         FCM[Firebase FCM]
         MAPS[Google Maps]
-        AUTH[Supabase Auth]
+        AUTH[JWT Auth Service]
     end
     
     NEXTJS --> GATEWAY
@@ -256,11 +256,11 @@ graph TB
     GATEWAY --> APPROVAL
     GATEWAY --> NOTIFICATION
     
-    EMP --> SUPABASE
-    ATT --> SUPABASE
-    PAY --> SUPABASE
-    LEAVE --> SUPABASE
-    APPROVAL --> SUPABASE
+    EMP --> POSTGRES
+    ATT --> POSTGRES
+    PAY --> POSTGRES
+    LEAVE --> POSTGRES
+    APPROVAL --> POSTGRES
     
     ATT --> REKOGNITION
     ATT --> MAPS
@@ -269,6 +269,7 @@ graph TB
     
     GATEWAY --> REDIS
     GATEWAY --> AUTH
+    GATEWAY --> POSTGRES
 ```
 
 ### Data Flow Sequence
@@ -680,12 +681,18 @@ flowchart TB
   - **Assumed Price**: $18/month
 - 
 - **Storage**: S3 (Asia Pacific Jakarta)
+  - **Storage Requirements Analysis for 1000 employees:**
+    - Face images (3mo retention): 364GB (1000 × 2 photos/day × 90 days × 2MB)
+    - Reimbursement documents: ~2GB/year
+    - Payroll documents: ~1.5GB/year
+    - HR documents: ~3GB
+    - **Total estimated: ~370GB** (exceeds S3 budget significantly)
   - **S3 Storage**: For file storage (images, documents)
-    - Standard storage: 300GB × $0.025/GB = ~$7.50/month
-    - PUT requests: 100,000 × $0.0053/1000 = ~$0.53/month
-    - GET requests: 1,000,000 × $0.0042/10,000 = ~$0.42/month
-    - **S3 Total**: ~$8.45/month
-  - **Assumed Price**: $10/month
+    - Standard storage: 370GB × $0.025/GB = ~$9.25/month
+    - PUT requests: 180,000 × $0.0053/1000 = ~$0.95/month
+    - GET requests: 1,800,000 × $0.0042/10,000 = ~$0.76/month
+    - **S3 Total**: ~$10.96/month
+  - **Assumed Price**: $11/month
 
 - **Notifications**: Firebase Cloud Messaging (FCM)
   - Price: Free (Spark plan sufficient)
@@ -721,14 +728,14 @@ flowchart TB
 **Monthly Total:**
 - Docker Host Server: $70/month
 - Database (Hostinger Postgres): $18/month
-- Storage (AWS S3): $10/month
+- Storage (AWS S3): $11/month
 - Firebase FCM: $0/month
 - AWS Rekognition: $100/month (worst case)
 - Sentry Monitoring: $26/month
-- **Total per month: $224/month**
+- **Total per month: $225/month**
 
 **Yearly Total:**
-- **Total per year: $2,688/year**
+- **Total per year: $2,700/year**
 
 ### CI/CD Pipeline
 
@@ -804,21 +811,21 @@ graph LR
 - **Hair**: Include current hairstyle variations if applicable
 
 **Technical Implementation**:
-- Upload reference photos to Supabase Storage via Go Backend API
-- Store employee reference photo path in Supabase Database
+- Upload reference photos to AWS S3 Storage via Go Backend API
+- Store employee reference photo path in PostgreSQL Database
 - During attendance, Go Backend calls AWS Rekognition CompareFaces API
 - Compare captured photo with stored reference photo directly
 - No face indexing or collection management required
 - Failed comparison (low quality/no match) triggers re-capture prompt
 
 **Storage Requirements**:
-- **5000 photos** (5 photos × 1000 users) = **~5GB total**
-- **Average photo size**: ~1MB (1080p JPEG)
-- **Supabase Pro includes 100GB** (more than sufficient)
+- **5000 photos** (5 photos × 1000 users) = **~10GB total**
+- **Average photo size**: ~2MB (1080p JPEG)
+- **AWS S3 storage cost**: ~$0.25/month for 10GB
 
 **Key Components**:
-- **Supabase Storage**: Store reference staff photos (included in Pro plan)
-- **Supabase Database**: Store photo paths and employee data (included)
+- **AWS S3 Storage**: Store reference staff photos (~$0.25/month for 10GB)
+- **PostgreSQL Database**: Store photo paths and employee data (Hostinger managed)
 - **Go Backend**: Direct CompareFaces API calls to Rekognition
 - **AWS Cost**: Only Rekognition ~$1 per 1,000 face comparisons (pay per use)
 - **No Collections**: Simplified architecture without face indexing
@@ -830,9 +837,9 @@ sequenceDiagram
     participant U as User (Staff Mobile)
     participant APP as Next.js PWA
     participant API as Go Backend API
-    participant STORAGE as Supabase Storage
+    participant STORAGE as AWS S3 Storage
     participant REK as AWS Rekognition
-    participant DB as Supabase Database
+    participant DB as PostgreSQL Database
     participant FCM as Firebase FCM
     
     Note over U,FCM: Face Recognition Attendance Check-in
