@@ -49,6 +49,7 @@
   - [Deployment Strategy](#deployment-strategy)
     - [Server Specifications](#server-specifications)
       - [Production/Development Environment (1000+ Users)](#productiondevelopment-environment-1000-users)
+    - [**Total Infrastructure Cost Summary**](#total-infrastructure-cost-summary)
     - [CI/CD Pipeline](#cicd-pipeline)
       - [Development Workflow](#development-workflow)
       - [Pipeline Stages](#pipeline-stages)
@@ -666,6 +667,7 @@ flowchart TB
   - Container Runtime: Docker with Docker Compose
   - Price: ~$53/month (Rp. 800,000) - Local Indonesian provider
   - Alternative: Hostinger VPS (https://www.hostinger.com/id/hosting-vps)
+  - **Price**: $100/month
   
 - **Database**: Supabase Pro Plan
   - Price: $25/month per project
@@ -675,25 +677,49 @@ flowchart TB
   - Point-in-time recovery: 7 days
   - Daily backups included
   - Reference: https://supabase.com/pricing
+  - **Assumed Price**: $25/month
 
 - **Notifications**: Firebase Cloud Messaging (FCM)
   - Price: Free (Spark plan sufficient)
   - Unlimited notifications
   - Cross-platform support (web, mobile)
   - No upgrade to paid plan needed for notifications only
+  - **Assumed Price**: $0/month
 
 - **Face Recognition**: AWS Rekognition (Asia Pacific Singapore)
-  - Face Search: $1.00 per 1,000 SearchFacesByImage calls
-  - Face Indexing: $1.00 per 1,000 IndexFaces calls (one-time setup)
-  - Face Storage: $0.01 per 1,000 face vectors per month
-  - Estimated monthly cost: $5-15 for 1000 employees with daily attendance
+  - Face Comparison: $0.0013 per CompareFaces call (first 1M images tier - worst case)
+  - No indexing or storage costs (direct photo comparison)
+  - Base monthly cost: $20-78 for 1000 employees (includes clock-in/out)
+  - Additional overhead: Failed attempts (+20%), Poor photo quality (+10%)
+  - **Total estimated cost: $26-101 for 1000 employees**
+  - Calculation breakdown:
+    - Base: 1000 employees × 2 calls/day × 30 days = 60,000 calls = $78/month
+    - With retries/re-captures: 60,000 × 1.30 = 78,000 calls = $101.40/month
+    - With 75% attendance: 58,500 calls = $76/month  
+    - With 50% attendance: 39,000 calls = $50.70/month
+    - With 25% attendance: 19,500 calls = $25.35/month
   - Reference: https://aws.amazon.com/rekognition/pricing/
+  - **Assumed Price**: $100/month
 
 - **Monitoring**: Sentry Team Plan
   - Price: $26/month
   - Error tracking and performance monitoring
   - Up to 5 team members included
   - Reference: https://sentry.io/pricing/
+  - **Assumed Price**: $26/month
+
+### **Total Infrastructure Cost Summary**
+
+**Monthly Total:**
+- Docker Host Server: $100/month
+- Supabase Pro Plan: $25/month
+- Firebase FCM: $0/month
+- AWS Rekognition: $100/month (worst case)
+- Sentry Monitoring: $26/month
+- **Total per month: $251/month**
+
+**Yearly Total:**
+- **Total per year: $3,012/year**
 
 ### CI/CD Pipeline
 
@@ -769,12 +795,12 @@ graph LR
 - **Hair**: Include current hairstyle variations if applicable
 
 **Technical Implementation**:
-- Upload photos to Supabase Storage via Go Backend API
-- Go Backend directly calls AWS Rekognition IndexFaces API
-- Each photo gets indexed into Rekognition Collection with unique face ID
-- System maintains employee-to-face_id mapping in Supabase Database
-- Photo updates replace old faces in collection automatically
-- Failed indexing (low quality) triggers notification to HR for re-capture
+- Upload reference photos to Supabase Storage via Go Backend API
+- Store employee reference photo path in Supabase Database
+- During attendance, Go Backend calls AWS Rekognition CompareFaces API
+- Compare captured photo with stored reference photo directly
+- No face indexing or collection management required
+- Failed comparison (low quality/no match) triggers re-capture prompt
 
 **Storage Requirements**:
 - **5000 photos** (5 photos × 1000 users) = **~5GB total**
@@ -783,10 +809,10 @@ graph LR
 
 **Key Components**:
 - **Supabase Storage**: Store reference staff photos (included in Pro plan)
-- **Supabase Database**: Store face metadata and employee mappings (included)
-- **Rekognition Collection**: Virtual container storing face feature vectors
-- **Go Backend**: Direct API calls to Rekognition (no Lambda needed)
-- **AWS Cost**: Only Rekognition ~$1-5 per 1,000 face searches (pay per use)
+- **Supabase Database**: Store photo paths and employee data (included)
+- **Go Backend**: Direct CompareFaces API calls to Rekognition
+- **AWS Cost**: Only Rekognition ~$1 per 1,000 face comparisons (pay per use)
+- **No Collections**: Simplified architecture without face indexing
 
 ### Mobile Face Recognition Attendance Flow
 
@@ -812,12 +838,14 @@ sequenceDiagram
     
     Note over API,REK: Face Recognition Process
     API->>STORAGE: Upload captured image temporarily
-    API->>REK: SearchFacesByImage(image, collection)
-    REK->>API: Return face matches + confidence scores
+    API->>DB: Get employee reference photo path
+    DB->>API: Return reference photo location
+    API->>STORAGE: Retrieve reference photo
+    API->>REK: CompareFaces(captured_image, reference_image)
+    REK->>API: Return similarity score + confidence
     
-    alt Face Recognized (confidence > 85%)
-        API->>DB: Query employee details by face_id
-        DB->>API: Return employee info (name, branch, etc)
+    alt Face Match (similarity > 90%)
+        Note over API: Employee already identified from lookup
         
         Note over API,DB: Validate Check-in Rules
         API->>DB: Check existing attendance today
@@ -834,9 +862,9 @@ sequenceDiagram
             APP->>U: Show error message
         end
         
-    else Face Not Recognized (confidence < 85%)
-        API->>APP: Return "face not recognized" error
-        APP->>U: Show "Face not recognized, contact HR"
+    else Face Not Matched (similarity < 90%)
+        API->>APP: Return "face not matched" error
+        APP->>U: Show "Face not matched, try again or contact HR"
         
     else Multiple Faces or No Face Detected
         API->>APP: Return "invalid image" error  
