@@ -667,52 +667,17 @@ flowchart TB
   - Container Runtime: Docker with Docker Compose
   - Price: ~$69.99/month
   - Alternative: Hostinger VPS (https://www.hostinger.com/id/hosting-vps)
-  - **Price**: $70/month
+  - **Assumed Price**: $70/month
+
 - **Database**: Postgres 
   - CPU: 2 cores (Intel/AMD equivalent)
   - RAM: 8GB DDR4
   - Storage: 100GB NVMe SSD
   - Network: 8 TB bandwidth
-  - Container Runtime: Docker with Docker Compose
+  - Container Runtime: Hosted postgresql
   - Price: ~$17.99/month
   - Reference: https://www.hostinger.com/id/hosting-vps
-  - **Price**: $18/month
-  
-<!-- - **Database**: Supabase Pro Plan
-  - Price: $25/month per project
-  - Database size: Up to 8GB included
-  - Bandwidth: 250GB included
-  - File storage: 100 GB
-  - Concurrent connections: Up to 200
-  - Point-in-time recovery: 7 days
-  - Daily backups included
-  - Reference: https://supabase.com/pricing
-  - **Storage Requirements Analysis for 1000 employees:**
-    - Face images (3mo retention): 91GB (1000 × 2 photos/day × 90 days × 0.5MB)
-    - Reimbursement documents: ~2GB/year
-    - Payroll documents: ~1.5GB/year
-    - HR documents: ~3GB
-    - **Total estimated: ~97GB** (approaching 100GB limit)
-  - **Overage pricing**: $0.021 per GB over 100GB limit
-  - **Why $50/month budget**: Provides safety margin for growth
-    - Base Pro plan: $25/month (100GB included)
-    - Budget headroom: $25/month for overages
-    - Additional capacity: 1,190GB extra ($25 ÷ $0.021)
-    - **Total capacity: ~1,290GB** (sufficient for 12+ months retention)
-  - **Assumed Price**: $50/month -->
-<!-- 
-- **Database and storage**: AWS RDS PostgreSQL + S3 (Asia Pacific Singapore)
-  - **RDS PostgreSQL**: db.t3.large (2 vCPU, 8GB RAM, suitable for 1000 users)
-    - Instance cost: ~$0.165/hour × 730 hours = ~$120/month
-    - Storage: 100GB GP3 SSD × $0.138/GB = ~$14/month
-    - Backup storage: 100GB × $0.095/GB = ~$9.50/month
-    - **RDS Total**: ~$143.50/month
-  - **S3 Storage**: For file storage (images, documents)
-    - Standard storage: 300GB × $0.025/GB = ~$7.50/month
-    - PUT requests: 100,000 × $0.0053/1000 = ~$0.53/month
-    - GET requests: 1,000,000 × $0.0042/10,000 = ~$0.42/month
-    - **S3 Total**: ~$8.45/month
-  - **Assumed Price**: ~$152/month -->
+  - **Assumed Price**: $18/month
 - 
 - **Storage**: S3 (Asia Pacific Jakarta)
   - **S3 Storage**: For file storage (images, documents)
@@ -755,14 +720,15 @@ flowchart TB
 
 **Monthly Total:**
 - Docker Host Server: $70/month
-- AWS S3 + RDS: $152/month
+- Database (Hostinger Postgres): $18/month
+- Storage (AWS S3): $10/month
 - Firebase FCM: $0/month
 - AWS Rekognition: $100/month (worst case)
 - Sentry Monitoring: $26/month
-- **Total per month: $348/month**
+- **Total per month: $224/month**
 
 **Yearly Total:**
-- **Total per year: $4,176/year**
+- **Total per year: $2,688/year**
 
 ### CI/CD Pipeline
 
