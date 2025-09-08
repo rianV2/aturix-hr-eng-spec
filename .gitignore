@@ -3,4 +3,5 @@
 
 # But include README.md
 !README.md
+!SPEC_LOW.md
 !.gitignore

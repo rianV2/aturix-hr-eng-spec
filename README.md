@@ -50,6 +50,7 @@
     - [Server Specifications](#server-specifications)
       - [Production/Development Environment (1000+ Users)](#productiondevelopment-environment-1000-users)
     - [**Total Infrastructure Cost Summary**](#total-infrastructure-cost-summary)
+      - [Second Option](#second-option)
     - [CI/CD Pipeline](#cicd-pipeline)
       - [Development Workflow](#development-workflow)
       - [Pipeline Stages](#pipeline-stages)
@@ -661,24 +662,23 @@ flowchart TB
 
 #### Production/Development Environment (1000+ Users)
 - **Docker Host Server**: 
-  - CPU: 8 cores (Intel/AMD equivalent)
-  - RAM: 32GB DDR4
-  - Storage: 400GB NVMe SSD
-  - Network: 1Gbps connection, 32TB bandwidth included
+  - CPU: 8 vCPUs
+  - RAM: 32 GiB
+  - Storage: 640 GiB NVMe SSD
+  - Network: 10,000 GiB transfer included
   - Container Runtime: Docker with Docker Compose
-  - Price: ~$69.99/month
-  - Alternative: Hostinger VPS (https://www.hostinger.com/id/hosting-vps)
-  - **Assumed Price**: $70/month
+  - Price: $192.00/month
+  - Provider: Digital Ocean Basic Droplets (https://www.digitalocean.com/pricing/droplets#basic-droplets)
+  - **Assumed Price**: $192/month
 
-- **Database**: Postgres 
-  - CPU: 2 cores (Intel/AMD equivalent)
-  - RAM: 8GB DDR4
-  - Storage: 100GB NVMe SSD
-  - Network: 8 TB bandwidth
-  - Container Runtime: Hosted postgresql
-  - Price: ~$17.99/month
-  - Reference: https://www.hostinger.com/id/hosting-vps
-  - **Assumed Price**: $18/month
+- **Database**: PostgreSQL Managed Database
+  - CPU: 2 vCPUs
+  - RAM: 8 GiB
+  - Storage: 100 GiB SSD
+  - Provider: Digital Ocean Managed Databases
+  - Price: $110.50/month
+  - Reference: https://www.digitalocean.com/pricing/managed-databases#postgresql
+  - **Assumed Price**: $110.50/month
 - 
 - **Storage**: S3 (Asia Pacific Jakarta)
   - **Storage Requirements Analysis for 1000 employees:**
@@ -726,16 +726,19 @@ flowchart TB
 ### **Total Infrastructure Cost Summary**
 
 **Monthly Total:**
-- Docker Host Server: $70/month
-- Database (Hostinger Postgres): $18/month
+- Docker Host Server: $192/month
+- Database (Digital Ocean Managed PostgreSQL): $110.50/month
 - Storage (AWS S3): $11/month
 - Firebase FCM: $0/month
 - AWS Rekognition: $100/month (worst case)
 - Sentry Monitoring: $26/month
-- **Total per month: $225/month**
+- **Total per month: $439.50/month**
 
 **Yearly Total:**
-- **Total per year: $2,700/year**
+- **Total per year: $5,274/year**
+
+#### Second Option
+- [SPEC LOW](./SPEC_LOW.md)
 
 ### CI/CD Pipeline
 
