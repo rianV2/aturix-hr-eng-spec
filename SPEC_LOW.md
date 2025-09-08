@@ -23,6 +23,7 @@
     - PUT requests: 180,000 × $0.0053/1000 = ~$0.95/month
     - GET requests: 1,800,000 × $0.0042/10,000 = ~$0.76/month
     - **S3 Total**: ~$10.96/month
+    - Reference: https://aws.amazon.com/s3/pricing/
   - **Assumed Price**: $11/month
 
 - **Notifications**: Firebase Cloud Messaging (FCM)
