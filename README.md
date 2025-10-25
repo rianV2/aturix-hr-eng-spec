@@ -2,14 +2,30 @@
 
 ## Executive Summary
 
-The HRIS provides integrated solutions for:
+### Market Background
+
+Traditional HRIS platforms suffer from poor user adoption due to complex interfaces requiring extensive training. Employees struggle with multi-step forms, confusing navigation, and finding the right features buried in menus. This friction leads to:
+- Low employee engagement with HR systems (average 35% active usage)
+- High support tickets for basic HR tasks (leave requests, policy questions)
+- Delayed approvals due to manager interface complexity
+- Wasted HR team time answering repetitive questions
+
+**The Solution**: A chat-first HRIS that eliminates complexity through conversational AI. Employees interact naturally via chat commands like `/request-leave` or plain language like "I need 3 days off next week". This approach:
+- **Reduces onboarding time** from days to minutes (no training needed)
+- **Increases adoption** by leveraging familiar chat interfaces (Slack, WhatsApp patterns)
+- **Accelerates workflows** with instant AI responses vs navigating complex UIs
+- **Scales support** through 24/7 AI handling of common HR queries
+
+### Core Platform Features
+
+The HRIS provides AI-integrated solutions for:
 - **Employee Management**: Complete employee lifecycle from onboarding to offboarding
-- **Attendance & Time Tracking**: GPS-based clock in/out with offline capability
+- **Attendance & Time Tracking**: GPS-based clock in/out with offline capability, managed via chat commands
 - **Payroll & Compensation**: Automated salary processing with tax calculations and compliance
-- **Self-Service Portal**: Employee self-service capabilities for profile management and requests
-- **Approval Workflows**: Configurable approval matrix for leave, overtime, and reimbursements
-- **Analytics & Reporting**: Comprehensive HR analytics with export capabilities
-- **AI-Powered Assistant**: Conversational AI for HR queries and document intelligence
+- **Self-Service Portal**: Chat-first employee self-service for profile management and requests
+- **Approval Workflows**: Conversational approval flows via notifications and chat interactions
+- **Analytics & Reporting**: Comprehensive HR analytics with natural language query support
+- **AI-Powered Assistant**: Conversational AI for HR queries, slash commands, and document intelligence
 
 ## AI Features
 
@@ -335,10 +351,11 @@ This is an **innovative and modern approach** that aligns with current UX trends
 1. Natural language: "I want to request 3 days leave next week"
 2. Bot suggests: "To request leave, type `/request-leave` or just tell me when you need time off"
 
-**Approval:**
-- Notification → Full detail view with action buttons
-- Manager can also chat: "Show me pending approvals"
-- `/approve LVE-001234` for power users
+**Approval Flow:**
+- Employee receives notification when request is approved/rejected
+- Manager receives notification → Opens chat with request details
+- Manager can approve/reject via chat buttons or type `/approve LVE-001234`
+- Manager can also ask: "Show me pending approvals"
 
 ---
 
