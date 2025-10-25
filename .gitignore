@@ -4,6 +4,8 @@
 # But include these files
 !README.md
 !.gitignore
+!ERD.md
+!mobile-wireframe.html
 
 # Include Archived folder and its contents
 !Archived/

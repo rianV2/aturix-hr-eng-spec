@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRIS Chat-First Mobile App - Wireframe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background: #ffffff;
+            border-radius: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            position: relative;
+            border: 8px solid #1a1a1a;
+        }
+
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 30px;
+            background: #1a1a1a;
+            border-radius: 0 0 20px 20px;
+            z-index: 1000;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            padding-top: 40px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        /* Menu Screen Styles */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .menu-item {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .menu-item .icon {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .menu-item .label {
+            font-size: 12px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* Chat Screen Styles */
+        .chat-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.bot .message-bubble {
+            background: #f0f0f0;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .message.bot .avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .message.user .avatar {
+            background: #e0e0e0;
+        }
+
+        .chat-input-area {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 359px;
+            padding: 12px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: #f0f0f0;
+            border-radius: 24px;
+            padding: 8px 16px;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            padding: 4px 0;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slash-suggestions {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            display: none;
+        }
+
+        .slash-suggestions.active {
+            display: block;
+        }
+
+        .slash-command {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slash-command:last-child {
+            border-bottom: none;
+        }
+
+        .slash-command:hover {
+            background: #f8f9fa;
+        }
+
+        .slash-command .cmd {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .slash-command .desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Notifications Screen Styles */
+        .notification-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .notification-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .notification-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+        .notification-item.unread {
+            border-left: 4px solid #667eea;
+            background: #f8f9ff;
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .notification-time {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .notification-body {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .notification-badge {
+            background: #667eea;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 375px;
+            height: 70px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 0 20px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            padding: 8px 20px;
+            border-radius: 12px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: #f8f9fa;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+        }
+
+        .nav-item .icon {
+            font-size: 24px;
+        }
+
+        .nav-item .label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .nav-badge {
+            position: absolute;
+            top: 4px;
+            right: 12px;
+            background: #ff4757;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Action Buttons in Messages */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Info Cards */
+        .info-card {
+            background: #f8f9fa;
+            border-left: 3px solid #667eea;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 13px;
+        }
+
+        .info-label {
+            color: #666;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .quick-action {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-action:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        /* Scrollbar Styling */
+        .content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .content::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="notch"></div>
+
+        <!-- Screen 1: Menu (Home) -->
+        <div class="screen active" id="menu-screen">
+            <div class="header">
+                <h1>HRIS Mobile</h1>
+            </div>
+            <div class="content">
+                <div class="menu-grid">
+                    <div class="menu-item" onclick="navigateToChat('/clock-in')">
+                        <div class="icon">⏰</div>
+                        <div class="label">Clock In</div>
+                    </div>
+                    <div class="menu-item" onclick="navigateToChat('/clock-out')">
+                        <div class="icon">🏁</div>
+                        <div class="label">Clock Out</div>
+                    </div>
+                    <div class="menu-item" onclick="navigateToChat('/request-leave')">
+                        <div class="icon">🏖️</div>
+                        <div class="label">Request Leave</div>
+                    </div>
+                    <div class="menu-item" onclick="navigateToChat('/check-balance')">
+                        <div class="icon">📊</div>
+                        <div class="label">Check Balance</div>
+                    </div>
+                    <div class="menu-item" onclick="navigateToChat('/my-requests')">
+                        <div class="icon">📝</div>
+                        <div class="label">My Requests</div>
+                    </div>
+                    <div class="menu-item" onclick="navigateToChat('/overtime')">
+                        <div class="icon">⏱️</div>
+                        <div class="label">Overtime</div>
+                    </div>
+                    <div class="menu-item" onclick="navigateToChat('/payslip')">
+                        <div class="icon">💰</div>
+                        <div class="label">Payslip</div>
+                    </div>
+                    <div class="menu-item" onclick="navigateToChat('/reimbursement')">
+                        <div class="icon">💳</div>
+                        <div class="label">Reimbursement</div>
+                    </div>
+                    <div class="menu-item" onclick="navigateToChat('/approve')">
+                        <div class="icon">✅</div>
+                        <div class="label">Approve</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 2: Chat Interface -->
+        <div class="screen" id="chat-screen">
+            <div class="header">
+                <button class="back-btn" onclick="switchScreen('menu-screen')">←</button>
+                <h1>AI Assistant</h1>
+            </div>
+            <div class="content" id="chat-content">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message bot">
+                        <div class="avatar">🤖</div>
+                        <div class="message-bubble">
+                            Hi! I'm your HRIS assistant. How can I help you today?
+                            <div class="quick-actions">
+                                <div class="quick-action" onclick="sendMessage('/help')">📖 Help</div>
+                                <div class="quick-action" onclick="sendMessage('/check-balance')">📊 Balance</div>
+                                <div class="quick-action" onclick="sendMessage('/my-requests')">📝 Requests</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <div class="slash-suggestions" id="slash-suggestions">
+                    <div class="slash-command" onclick="useSlashCommand('/request-leave')">
+                        <span class="cmd">/request-leave</span>
+                        <span class="desc">Request time off</span>
+                    </div>
+                    <div class="slash-command" onclick="useSlashCommand('/check-balance')">
+                        <span class="cmd">/check-balance</span>
+                        <span class="desc">View leave balance</span>
+                    </div>
+                    <div class="slash-command" onclick="useSlashCommand('/my-requests')">
+                        <span class="cmd">/my-requests</span>
+                        <span class="desc">View request history</span>
+                    </div>
+                    <div class="slash-command" onclick="useSlashCommand('/help')">
+                        <span class="cmd">/help</span>
+                        <span class="desc">Show commands</span>
+                    </div>
+                    <div class="slash-command" onclick="useSlashCommand('/approve')">
+                        <span class="cmd">/approve</span>
+                        <span class="desc">Approve requests</span>
+                    </div>
+                    <div class="slash-command" onclick="useSlashCommand('/clock-in')">
+                        <span class="cmd">/clock-in</span>
+                        <span class="desc">Clock in attendance</span>
+                    </div>
+                    <div class="slash-command" onclick="useSlashCommand('/clock-out')">
+                        <span class="cmd">/clock-out</span>
+                        <span class="desc">Clock out</span>
+                    </div>
+                    <div class="slash-command" onclick="useSlashCommand('/overtime')">
+                        <span class="cmd">/overtime</span>
+                        <span class="desc">Request overtime</span>
+                    </div>
+                    <div class="slash-command" onclick="useSlashCommand('/payslip')">
+                        <span class="cmd">/payslip</span>
+                        <span class="desc">View payslip</span>
+                    </div>
+                    <div class="slash-command" onclick="useSlashCommand('/reimbursement')">
+                        <span class="cmd">/reimbursement</span>
+                        <span class="desc">Submit expense</span>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chat-input" placeholder="Type a message or /"
+                           onkeyup="handleChatInput(event)" onkeydown="handleKeyDown(event)">
+                    <button class="send-btn" onclick="sendUserMessage()">➤</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 3: Notifications -->
+        <div class="screen" id="notifications-screen">
+            <div class="header">
+                <button class="back-btn" onclick="switchScreen('menu-screen')">←</button>
+                <h1>Notifications</h1>
+            </div>
+            <div class="content">
+                <div class="notification-list">
+                    <div class="notification-item unread" onclick="viewNotificationInChat('leave-approved')">
+                        <div class="notification-header">
+                            <div class="notification-title">✅ Leave Request Approved</div>
+                            <div class="notification-time">10 min ago</div>
+                        </div>
+                        <div class="notification-body">
+                            Your leave request for Dec 24-26, 2025 has been approved by Manager Sarah Johnson.
+                        </div>
+                    </div>
+                    <div class="notification-item unread" onclick="viewNotificationInChat('overtime-pending')">
+                        <div class="notification-header">
+                            <div class="notification-title">⏱️ Overtime Request Pending</div>
+                            <div class="notification-time">2 hours ago</div>
+                        </div>
+                        <div class="notification-body">
+                            Your overtime request for 3 hours on Oct 22, 2025 is pending manager approval.
+                        </div>
+                    </div>
+                    <div class="notification-item" onclick="viewNotificationInChat('payslip-available')">
+                        <div class="notification-header">
+                            <div class="notification-title">💰 New Payslip Available</div>
+                            <div class="notification-time">1 day ago</div>
+                        </div>
+                        <div class="notification-body">
+                            Your October 2025 payslip is now available for download.
+                        </div>
+                    </div>
+                    <div class="notification-item" onclick="viewNotificationInChat('reminder-clockout')">
+                        <div class="notification-header">
+                            <div class="notification-title">⏰ Clock Out Reminder</div>
+                            <div class="notification-time">Yesterday</div>
+                        </div>
+                        <div class="notification-body">
+                            Don't forget to clock out at the end of your shift today.
+                        </div>
+                    </div>
+                    <div class="notification-item" onclick="viewNotificationInChat('approval-needed')">
+                        <div class="notification-header">
+                            <div class="notification-title">👥 3 Approvals Needed</div>
+                            <div class="notification-time">2 days ago</div>
+                        </div>
+                        <div class="notification-body">
+                            You have 3 pending requests from your team members waiting for approval.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchScreen('menu-screen')">
+                <div class="icon">🏠</div>
+                <div class="label">Menu</div>
+            </div>
+            <div class="nav-item" onclick="switchScreen('chat-screen')">
+                <div class="icon">💬</div>
+                <div class="label">Chat</div>
+            </div>
+            <div class="nav-item" onclick="switchScreen('notifications-screen')">
+                <div class="icon">🔔</div>
+                <div class="label">Notifications</div>
+                <span class="nav-badge">5</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Screen Navigation
+        function switchScreen(screenId) {
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(screen => screen.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+
+            // Update active nav item
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+
+            if (screenId === 'menu-screen') {
+                navItems[0].classList.add('active');
+            } else if (screenId === 'chat-screen') {
+                navItems[1].classList.add('active');
+            } else if (screenId === 'notifications-screen') {
+                navItems[2].classList.add('active');
+            }
+        }
+
+        // Navigate to chat with pre-filled command
+        function navigateToChat(command) {
+            switchScreen('chat-screen');
+            setTimeout(() => {
+                sendMessage(command);
+            }, 300);
+        }
+
+        // Chat functionality
+        function addMessage(text, isUser = false, hasActions = false, cardData = null) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+
+            let content = `
+                <div class="avatar">${isUser ? '👤' : '🤖'}</div>
+                <div class="message-bubble">
+                    ${text}
+            `;
+
+            if (cardData) {
+                content += '<div class="info-card">';
+                cardData.forEach(row => {
+                    content += `
+                        <div class="info-row">
+                            <span class="info-label">${row.label}</span>
+                            <span class="info-value">${row.value}</span>
+                        </div>
+                    `;
+                });
+                content += '</div>';
+            }
+
+            if (hasActions) {
+                content += `
+                    <div class="action-buttons">
+                        <button class="action-btn primary" onclick="handleAction('submit')">Submit</button>
+                        <button class="action-btn" onclick="handleAction('cancel')">Cancel</button>
+                    </div>
+                `;
+            }
+
+            content += '</div>';
+            messageDiv.innerHTML = content;
+            messagesContainer.appendChild(messageDiv);
+
+            // Scroll to bottom
+            const chatContent = document.getElementById('chat-content');
+            chatContent.scrollTop = chatContent.scrollHeight;
+        }
+
+        function sendMessage(command) {
+            const input = document.getElementById('chat-input');
+            const message = command || input.value.trim();
+
+            if (!message) return;
+
+            addMessage(message, true);
+            input.value = '';
+            hideSuggestions();
+
+            // Simulate AI response
+            setTimeout(() => {
+                handleCommand(message);
+            }, 500);
+        }
+
+        function sendUserMessage() {
+            sendMessage();
+        }
+
+        function handleCommand(command) {
+            switch(command) {
+                case '/request-leave':
+                    addMessage('I can help you request leave. Please provide the following details:');
+                    setTimeout(() => {
+                        addMessage('When would you like to take leave? (Start date and end date)', false, false);
+                    }, 300);
+                    break;
+
+                case '/check-balance':
+                    addMessage('Here\'s your current leave balance:', false, false, [
+                        { label: 'Annual Leave', value: '12 days' },
+                        { label: 'Sick Leave', value: '5 days' },
+                        { label: 'Personal Leave', value: '3 days' },
+                        { label: 'Used This Year', value: '8 days' }
+                    ]);
+                    break;
+
+                case '/my-requests':
+                    addMessage('Here are your recent requests:', false, false, [
+                        { label: 'Leave (Dec 24-26)', value: '✅ Approved' },
+                        { label: 'Overtime (Oct 22)', value: '⏳ Pending' },
+                        { label: 'Leave (Oct 10-12)', value: '✅ Approved' },
+                        { label: 'Reimbursement', value: '✅ Paid' }
+                    ]);
+                    break;
+
+                case '/help':
+                    addMessage(`Available commands:
+
+• /request-leave - Request time off
+• /check-balance - View leave balance
+• /my-requests - View request history
+• /approve - Approve team requests
+• /clock-in - Clock in attendance
+• /clock-out - Clock out
+• /overtime - Request overtime
+• /payslip - View payslip
+• /reimbursement - Submit expense
+
+You can also just chat naturally! Try: "I need 3 days off next week"`);
+                    break;
+
+                case '/approve':
+                    addMessage('You have 3 pending approvals from your team:', false, false, [
+                        { label: 'John - Leave', value: '⏳ Pending' },
+                        { label: 'Sarah - Overtime', value: '⏳ Pending' },
+                        { label: 'Mike - Reimbursement', value: '⏳ Pending' }
+                    ]);
+                    setTimeout(() => {
+                        addMessage('Which request would you like to review? Reply with the name or tap to view details.', false, false);
+                    }, 500);
+                    break;
+
+                case '/clock-in':
+                    addMessage('Clocking you in...', false, false);
+                    setTimeout(() => {
+                        addMessage('✅ Successfully clocked in!', false, false, [
+                            { label: 'Time', value: '09:00 AM' },
+                            { label: 'Location', value: 'Office HQ' },
+                            { label: 'Date', value: 'Oct 25, 2025' }
+                        ]);
+                    }, 1000);
+                    break;
+
+                case '/clock-out':
+                    addMessage('Clocking you out...', false, false);
+                    setTimeout(() => {
+                        addMessage('✅ Successfully clocked out!', false, false, [
+                            { label: 'Clock In', value: '09:00 AM' },
+                            { label: 'Clock Out', value: '05:30 PM' },
+                            { label: 'Hours Worked', value: '8.5 hours' },
+                            { label: 'Date', value: 'Oct 25, 2025' }
+                        ]);
+                    }, 1000);
+                    break;
+
+                case '/overtime':
+                    addMessage('I can help you request overtime. Please provide:');
+                    setTimeout(() => {
+                        addMessage('1. Date of overtime\n2. Number of hours\n3. Reason for overtime', false, false);
+                    }, 300);
+                    break;
+
+                case '/payslip':
+                    addMessage('Here\'s your latest payslip:', false, false, [
+                        { label: 'Month', value: 'October 2025' },
+                        { label: 'Gross Salary', value: 'Rp 15,000,000' },
+                        { label: 'Deductions', value: 'Rp 1,500,000' },
+                        { label: 'Net Salary', value: 'Rp 13,500,000' },
+                        { label: 'Status', value: '✅ Paid' }
+                    ]);
+                    setTimeout(() => {
+                        addMessage('Would you like to download the PDF?', false, true);
+                    }, 500);
+                    break;
+
+                case '/reimbursement':
+                    addMessage('I can help you submit a reimbursement request. Please provide:');
+                    setTimeout(() => {
+                        addMessage('1. Expense type (Travel, Meal, Office Supplies, etc.)\n2. Amount\n3. Date of expense\n4. Upload receipt', false, false);
+                    }, 300);
+                    break;
+
+                default:
+                    if (command.toLowerCase().includes('leave') || command.toLowerCase().includes('off')) {
+                        addMessage('I understand you need time off. Let me help with that! Use /request-leave or tell me your preferred dates.', false, false);
+                    } else if (command.toLowerCase().includes('balance')) {
+                        sendMessage('/check-balance');
+                    } else {
+                        addMessage(`I received: "${command}". Try using slash commands like /help to see what I can do, or just ask me naturally!`, false, false);
+                    }
+            }
+        }
+
+        function handleAction(action) {
+            if (action === 'submit') {
+                addMessage('Great! Your request has been submitted for approval.', false, false);
+            } else {
+                addMessage('Request cancelled.', false, false);
+            }
+        }
+
+        // Slash command suggestions
+        function handleChatInput(event) {
+            const input = document.getElementById('chat-input');
+            const suggestions = document.getElementById('slash-suggestions');
+
+            if (input.value.startsWith('/')) {
+                suggestions.classList.add('active');
+            } else {
+                suggestions.classList.remove('active');
+            }
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter') {
+                sendUserMessage();
+            }
+        }
+
+        function useSlashCommand(command) {
+            const input = document.getElementById('chat-input');
+            input.value = command;
+            hideSuggestions();
+            sendMessage(command);
+        }
+
+        function hideSuggestions() {
+            document.getElementById('slash-suggestions').classList.remove('active');
+        }
+
+        // View notification in chat
+        function viewNotificationInChat(notificationType) {
+            switchScreen('chat-screen');
+
+            setTimeout(() => {
+                switch(notificationType) {
+                    case 'leave-approved':
+                        addMessage('View my leave request for Dec 24-26', true);
+                        setTimeout(() => {
+                            addMessage('Your leave request has been approved!', false, false, [
+                                { label: 'Dates', value: 'Dec 24-26, 2025' },
+                                { label: 'Duration', value: '3 days' },
+                                { label: 'Type', value: 'Annual Leave' },
+                                { label: 'Status', value: '✅ Approved' },
+                                { label: 'Approved By', value: 'Sarah Johnson' }
+                            ]);
+                        }, 500);
+                        break;
+
+                    case 'overtime-pending':
+                        addMessage('Show my overtime request status', true);
+                        setTimeout(() => {
+                            addMessage('Your overtime request is pending approval:', false, false, [
+                                { label: 'Date', value: 'Oct 22, 2025' },
+                                { label: 'Hours', value: '3 hours' },
+                                { label: 'Status', value: '⏳ Pending' },
+                                { label: 'Submitted', value: '2 hours ago' }
+                            ]);
+                        }, 500);
+                        break;
+
+                    case 'payslip-available':
+                        sendMessage('/payslip');
+                        break;
+
+                    case 'approval-needed':
+                        sendMessage('/approve');
+                        break;
+
+                    default:
+                        addMessage('Notification details loaded.', false, false);
+                }
+            }, 300);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('HRIS Mobile Wireframe Loaded');
+        });
+    </script>
+</body>
+</html>
