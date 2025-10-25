@@ -45,14 +45,14 @@ The chat-based service is built using a hybrid architecture:
 ```mermaid
 sequenceDiagram
     participant M as Mobile App
-    participant WS as Go WebSocket Server
+    participant SIO as Python Socket.IO Server
     participant LG as LangGraph (Python)
     participant MCP as MCP Server (Go)
     participant BE as Backend Services (Go)
     participant DB as Database
 
-    M->>WS: Send chat message/command
-    WS->>LG: Forward to LangGraph agent
+    M->>SIO: Send chat message/command
+    SIO->>LG: Forward to LangGraph agent
     LG->>LG: Process intent & state
     LG->>MCP: Request tool execution
     MCP->>BE: Call HRIS API
@@ -61,8 +61,8 @@ sequenceDiagram
     BE-->>MCP: API response
     MCP-->>LG: Tool response with context
     LG->>LG: Generate AI response
-    LG-->>WS: Stream AI response
-    WS-->>M: Real-time message stream
+    LG-->>SIO: Stream AI response
+    SIO-->>M: Real-time message stream
 ```
 
 #### Features
@@ -315,14 +315,14 @@ sequenceDiagram
 
 ### AI Chat Service
 - **AI Framework**: Python with LangGraph for conversational AI workflows and state management
-- **WebSocket Server**: Go with Gorilla WebSocket or native net/http for real-time bidirectional communication
+- **Real-time Server**: Python Socket.IO server for real-time bidirectional communication with clients
 - **MCP Server**: Go implementation for tool orchestration, context management, and HRIS service integration
 - **LLM Provider**: OpenAI GPT-4.1-mini for cost-effective conversational AI
 
 ### Mobile Application
 - **Framework**: Flutter for cross-platform mobile development (iOS & Android)
 - **State Management**: Riverpod or Provider for reactive state management
-- **Real-time Communication**: WebSocket client for chat interface
+- **Real-time Communication**: Socket.IO client for chat interface
 - **Local Storage**: SQLite for offline relational data and Hive for key-value storage
 - **Push Notifications**: Firebase Cloud Messaging (FCM)
 
@@ -363,11 +363,11 @@ graph TB
     end
 
     subgraph Gateway["Gateway Layer"]
-        WSServer["Go WebSocket Server<br/>- Real-time Chat<br/>- Message Streaming"]
         APIGateway["Go HTTP API Gateway<br/>- Authentication<br/>- Rate Limiting"]
     end
 
-    subgraph AI["AI Layer"]
+    subgraph AI["AI Chat Layer"]
+        SocketIO["Python Socket.IO Server<br/>- Real-time Chat<br/>- Message Streaming"]
         LangGraph["Python LangGraph<br/>- AI Agent & Workflows<br/>- State Management"]
     end
 
@@ -384,9 +384,9 @@ graph TB
         Cache["Redis<br/>- Session & Cache<br/>- Job Queue"]
     end
 
-    Mobile -->|WebSocket| WSServer
+    Mobile -->|Socket.IO| SocketIO
     BackOffice -->|REST API| APIGateway
-    WSServer -->|gRPC/HTTP| LangGraph
+    SocketIO <-->|In-Process| LangGraph
     LangGraph -->|MCP Protocol| MCP
     MCP -->|REST API| Services
     APIGateway -->|REST API| Services
