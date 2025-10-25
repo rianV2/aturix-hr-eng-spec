@@ -32,11 +32,45 @@ The HRIS provides AI-integrated solutions for:
 The system includes AI-powered capabilities to enhance user experience and automate HR operations:
 
 ### Conversational AI Assistant
+
+#### Technology Stack
+The chat-based service is built using a hybrid architecture:
+- **AI Engine**: Python with LangGraph for conversational AI workflows, state management, and agentic orchestration
+- **Communication Layer**: Go-based WebSocket server for real-time bidirectional communication between mobile clients and AI engine
+- **MCP (Model Context Protocol)**: Go implementation for tool integration, context management, and HRIS service orchestration
+- **Backend Services**: Go microservices for core HRIS functionality (attendance, payroll, leave management, employee data)
+
+#### Architecture Flow
+
+```mermaid
+sequenceDiagram
+    participant M as Mobile App
+    participant WS as Go WebSocket Server
+    participant LG as LangGraph (Python)
+    participant MCP as MCP Server (Go)
+    participant BE as Backend Services (Go)
+    participant DB as Database
+
+    M->>WS: Send chat message/command
+    WS->>LG: Forward to LangGraph agent
+    LG->>LG: Process intent & state
+    LG->>MCP: Request tool execution
+    MCP->>BE: Call HRIS API
+    BE->>DB: Query/Update data
+    DB-->>BE: Return data
+    BE-->>MCP: API response
+    MCP-->>LG: Tool response with context
+    LG->>LG: Generate AI response
+    LG-->>WS: Stream AI response
+    WS-->>M: Real-time message stream
+```
+
+#### Features
 | Feature | Complexity | Implementation Notes |
 |---------|-----------|---------------------|
-| Policy Queries | Easy | HR policy chatbot with static content and pre-defined Q&A using template matching |
-| Leave Balance Check | Easy | Natural language queries for checking leave balance via direct HRIS API integration |
-| Leave/PTO Requests | Medium | Conversational leave request submission with approval workflow integration |
+| Policy Queries | Easy | HR policy chatbot with static content and pre-defined Q&A using LangGraph flows |
+| Leave Balance Check | Easy | Natural language queries for checking leave balance via MCP tool calls to Go HRIS API |
+| Leave/PTO Requests | Medium | Conversational leave request submission with approval workflow integration via LangGraph state machines |
 | Multi-language Support | Easy | Support for multiple languages using translation APIs (Google Translate, DeepL) |
 | 24/7 Availability | Medium | Always-on AI assistant with infrastructure monitoring and maintenance |
 
@@ -322,6 +356,109 @@ The following features are planned for future releases and NOT included in the M
 - Integration with AWS Rekognition or similar services
 - Camera-based attendance for mobile, web, and kiosk
 
+## Technology Stack
+
+### Backend Services
+- **Programming Language**: Go (Golang)
+- **Framework**: Fiber or Gin for HTTP REST APIs
+- **Database**: PostgreSQL for relational data storage
+- **Cache & Message Queue**: Redis for session management, caching, and async job processing
+
+### AI Chat Service
+- **AI Framework**: Python with LangGraph for conversational AI workflows and state management
+- **WebSocket Server**: Go with Gorilla WebSocket or native net/http for real-time bidirectional communication
+- **MCP Server**: Go implementation for tool orchestration, context management, and HRIS service integration
+- **LLM Provider**: OpenAI GPT-4.1-mini for cost-effective conversational AI
+
+### Mobile Application
+- **Framework**: Flutter for cross-platform mobile development (iOS & Android)
+- **State Management**: Riverpod or Provider for reactive state management
+- **Real-time Communication**: WebSocket client for chat interface
+- **Local Storage**: SQLite for offline relational data and Hive for key-value storage
+- **Push Notifications**: Firebase Cloud Messaging (FCM)
+
+### Frontend Back Office (Admin/HR Portal)
+- **Framework**: React.js or Next.js for web-based administration portal
+- **State Management**: Redux Toolkit or Zustand for complex state handling
+- **UI Library**: Material-UI (MUI) or Ant Design for enterprise-grade components
+- **Data Tables**: TanStack Table (React Table) for complex data grids with sorting, filtering, pagination
+- **Charts & Analytics**: Recharts or Chart.js for HR dashboards and reporting
+- **Form Management**: React Hook Form with Zod validation for complex forms
+- **API Client**: Axios or TanStack Query for REST API communication with Go backend
+
+**Purpose**: Handles complex administrative tasks that require detailed UI/UX and are not suitable for conversational AI:
+- Bulk employee data import/export (CSV, Excel)
+- Complex payroll configuration (tax brackets, BPJS settings, allowance rules)
+- Detailed approval matrix configuration with multi-level hierarchies
+- Advanced reporting with custom filters, date ranges, and export options
+- Organization structure management (departments, positions, reporting lines)
+- System configuration (shift schedules, leave policies, holiday calendars)
+- Audit logs and compliance reporting
+- Batch operations (bulk approvals, mass employee updates)
+
+### Infrastructure
+- **Containerization**: Docker for all services
+- **Orchestration**: Docker Compose for local development and deployment
+- **CI/CD**: GitHub Actions or GitLab CI for automated testing and deployment
+- **Monitoring & Error Tracking**: Sentry for application monitoring, error reporting, and performance tracking
+- **Logging**: Structured JSON logging with centralized collection via Sentry
+
+### API Architecture
+```
+┌─────────────────────────┐         ┌──────────────────────────┐
+│  Mobile App (Flutter)   │         │  Back Office (React.js)  │
+│  - Employee Interface   │         │  - Admin/HR Portal       │
+│  - Chat-first UX        │         │  - Complex Operations    │
+└───────────┬─────────────┘         └────────────┬─────────────┘
+            │                                    │
+            │ (WebSocket)                        │ (REST API)
+            ↓                                    ↓
+┌─────────────────────────┐         ┌──────────────────────────┐
+│ Go WebSocket Server     │         │  Go HTTP API Gateway     │
+│ - Real-time Chat        │         │  - Authentication        │
+│ - Message Streaming     │         │  - Rate Limiting         │
+└───────────┬─────────────┘         └────────────┬─────────────┘
+            │                                    │
+            │ (gRPC/HTTP)                        │
+            ↓                                    │
+┌─────────────────────────┐                     │
+│ Python LangGraph        │                     │
+│ - AI Agent & Workflows  │                     │
+│ - State Management      │                     │
+└───────────┬─────────────┘                     │
+            │                                    │
+            │ (MCP Protocol)                     │
+            ↓                                    │
+┌─────────────────────────┐                     │
+│  Go MCP Server          │                     │
+│  - Tool Orchestration   │                     │
+│  - Context Management   │                     │
+└───────────┬─────────────┘                     │
+            │                                    │
+            │ (REST API)                         │
+            └────────────────┬───────────────────┘
+                             ↓
+            ┌────────────────────────────┐
+            │  Go Backend Services       │
+            │  - Employee Service        │
+            │  - Attendance Service      │
+            │  - Payroll Service         │
+            │  - Leave Service           │
+            │  - Approval Service        │
+            └────────────┬───────────────┘
+                         ↓
+            ┌────────────────────────────┐
+            │  PostgreSQL Database       │
+            │  - Relational Data         │
+            └────────────────────────────┘
+                         ↕
+            ┌────────────────────────────┐
+            │  Redis                     │
+            │  - Session & Cache         │
+            │  - Job Queue               │
+            └────────────────────────────┘
+```
+
 ## Glossary
 
 - **HRIS**: Human Resource Information System - Comprehensive software for managing employee information and HR processes
@@ -332,6 +469,8 @@ The following features are planned for future releases and NOT included in the M
 - **BPJS**: Indonesian social security system for healthcare and employment
 - **PWA**: Progressive Web App - Web applications with native app-like features
 - **FCM**: Firebase Cloud Messaging - Cross-platform messaging solution for push notifications
+- **LangGraph**: Python framework by LangChain for building stateful, multi-actor applications with LLMs using graph-based workflows
+- **MCP**: Model Context Protocol - Standard protocol for connecting AI models to external tools, data sources, and services
 
 
 

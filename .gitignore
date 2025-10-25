@@ -6,7 +6,10 @@
 !.gitignore
 !ERD.md
 !mobile-wireframe.html
+!API_CONTRACT.md
 
 # Include Archived folder and its contents
 !Archived/
 !Archived/**
+
+# check README, api contract, erd. use project manager agent, create user story and detail based on our readme. 
