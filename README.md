@@ -378,13 +378,14 @@ The following features are planned for future releases and NOT included in the M
 - **Push Notifications**: Firebase Cloud Messaging (FCM)
 
 ### Frontend Back Office (Admin/HR Portal)
-- **Framework**: React.js or Next.js for web-based administration portal
-- **State Management**: Redux Toolkit or Zustand for complex state handling
-- **UI Library**: Material-UI (MUI) or Ant Design for enterprise-grade components
-- **Data Tables**: TanStack Table (React Table) for complex data grids with sorting, filtering, pagination
+- **Framework**: Next.js for web-based administration portal with SSR/SSG capabilities
+- **State Management**: Zustand or Redux Toolkit for complex state handling
+- **UI Library**: shadcn/ui or Ant Design for enterprise-grade components
+- **Data Tables**: TanStack Table for complex data grids with sorting, filtering, pagination
 - **Charts & Analytics**: Recharts or Chart.js for HR dashboards and reporting
-- **Form Management**: React Hook Form with Zod validation for complex forms
-- **API Client**: Axios or TanStack Query for REST API communication with Go backend
+- **Form Management**: Zod validation with form libraries for complex forms
+- **API Client**: TanStack Query for REST API communication with Go backend
+- **Authentication**: NextAuth.js for session management and authentication flows
 
 **Purpose**: Handles complex administrative tasks that require detailed UI/UX and are not suitable for conversational AI:
 - Bulk employee data import/export (CSV, Excel)
@@ -404,59 +405,44 @@ The following features are planned for future releases and NOT included in the M
 - **Logging**: Structured JSON logging with centralized collection via Sentry
 
 ### API Architecture
-```
-┌─────────────────────────┐         ┌──────────────────────────┐
-│  Mobile App (Flutter)   │         │  Back Office (React.js)  │
-│  - Employee Interface   │         │  - Admin/HR Portal       │
-│  - Chat-first UX        │         │  - Complex Operations    │
-└───────────┬─────────────┘         └────────────┬─────────────┘
-            │                                    │
-            │ (WebSocket)                        │ (REST API)
-            ↓                                    ↓
-┌─────────────────────────┐         ┌──────────────────────────┐
-│ Go WebSocket Server     │         │  Go HTTP API Gateway     │
-│ - Real-time Chat        │         │  - Authentication        │
-│ - Message Streaming     │         │  - Rate Limiting         │
-└───────────┬─────────────┘         └────────────┬─────────────┘
-            │                                    │
-            │ (gRPC/HTTP)                        │
-            ↓                                    │
-┌─────────────────────────┐                     │
-│ Python LangGraph        │                     │
-│ - AI Agent & Workflows  │                     │
-│ - State Management      │                     │
-└───────────┬─────────────┘                     │
-            │                                    │
-            │ (MCP Protocol)                     │
-            ↓                                    │
-┌─────────────────────────┐                     │
-│  Go MCP Server          │                     │
-│  - Tool Orchestration   │                     │
-│  - Context Management   │                     │
-└───────────┬─────────────┘                     │
-            │                                    │
-            │ (REST API)                         │
-            └────────────────┬───────────────────┘
-                             ↓
-            ┌────────────────────────────┐
-            │  Go Backend Services       │
-            │  - Employee Service        │
-            │  - Attendance Service      │
-            │  - Payroll Service         │
-            │  - Leave Service           │
-            │  - Approval Service        │
-            └────────────┬───────────────┘
-                         ↓
-            ┌────────────────────────────┐
-            │  PostgreSQL Database       │
-            │  - Relational Data         │
-            └────────────────────────────┘
-                         ↕
-            ┌────────────────────────────┐
-            │  Redis                     │
-            │  - Session & Cache         │
-            │  - Job Queue               │
-            └────────────────────────────┘
+
+```mermaid
+graph TB
+    subgraph Clients["Client Layer"]
+        Mobile["Mobile App (Flutter)<br/>- Employee Interface<br/>- Chat-first UX"]
+        BackOffice["Back Office (Next.js)<br/>- Admin/HR Portal<br/>- Complex Operations"]
+    end
+
+    subgraph Gateway["Gateway Layer"]
+        WSServer["Go WebSocket Server<br/>- Real-time Chat<br/>- Message Streaming"]
+        APIGateway["Go HTTP API Gateway<br/>- Authentication<br/>- Rate Limiting"]
+    end
+
+    subgraph AI["AI Layer"]
+        LangGraph["Python LangGraph<br/>- AI Agent & Workflows<br/>- State Management"]
+    end
+
+    subgraph Orchestration["Orchestration Layer"]
+        MCP["Go MCP Server<br/>- Tool Orchestration<br/>- Context Management"]
+    end
+
+    subgraph Backend["Backend Layer"]
+        Services["Go Backend Services<br/>- Employee Service<br/>- Attendance Service<br/>- Payroll Service<br/>- Leave Service<br/>- Approval Service"]
+    end
+
+    subgraph Data["Data Layer"]
+        DB["PostgreSQL Database<br/>- Relational Data"]
+        Cache["Redis<br/>- Session & Cache<br/>- Job Queue"]
+    end
+
+    Mobile -->|WebSocket| WSServer
+    BackOffice -->|REST API| APIGateway
+    WSServer -->|gRPC/HTTP| LangGraph
+    LangGraph -->|MCP Protocol| MCP
+    MCP -->|REST API| Services
+    APIGateway -->|REST API| Services
+    Services -->|SQL| DB
+    Services <-->|Cache/Queue| Cache
 ```
 
 ## Glossary
@@ -471,41 +457,3 @@ The following features are planned for future releases and NOT included in the M
 - **FCM**: Firebase Cloud Messaging - Cross-platform messaging solution for push notifications
 - **LangGraph**: Python framework by LangChain for building stateful, multi-actor applications with LLMs using graph-based workflows
 - **MCP**: Model Context Protocol - Standard protocol for connecting AI models to external tools, data sources, and services
-
-
-
-## Concept
-# Analysis: Chat-First HRIS Interface with Slash Commands
-
-## 🎯 Overall Assessment: **GOOD IDEA with Caveats**
-
-This is an **innovative and modern approach** that aligns with current UX trends, but requires careful implementation. Here's my detailed analysis:
-
-
-## 🚀 MVP Implementation Recommendation
-
-### **Hybrid Approach**
-
-**Chat Actions (Support Both):**
-1. Natural language: "I want to request 3 days leave next week"
-2. Bot suggests: "To request leave, type `/request-leave` or just tell me when you need time off"
-
-**Approval Flow:**
-- Employee receives notification when request is approved/rejected
-- Manager receives notification → Opens chat with request details
-- Manager can approve/reject via chat buttons or type `/approve LVE-001234`
-- Manager can also ask: "Show me pending approvals"
-
----
-
-### **Commands to Support Initially:**
-
-| Command | Purpose | Complexity |
-|---------|---------|-----------|
-| `/request-leave` | Request time off | ⭐⭐ |
-| `/check-balance` | View leave balance | ⭐ |
-| `/my-requests` | View request history | ⭐ |
-| `/help` | Show available commands | ⭐ |
-| `/approve` | Approve requests (managers) | ⭐⭐ |
-
----
