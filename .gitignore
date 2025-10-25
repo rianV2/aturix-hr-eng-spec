@@ -1,7 +1,10 @@
 # Ignore all files
 *
 
-# But include README.md
+# But include these files
 !README.md
-!SPEC_LOW.md
 !.gitignore
+
+# Include Archived folder and its contents
+!Archived/
+!Archived/**
