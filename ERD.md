@@ -7,14 +7,11 @@ This ERD contains only the essential tables required for the HRIS, focusing on c
 ```mermaid
 erDiagram
     %% MASTER DATA
-    COMPANIES ||--o{ DEPARTMENTS : has
     COMPANIES ||--o{ BRANCHES : has
-    COMPANIES ||--o{ JOB_LEVELS : defines
-    COMPANIES ||--o{ COMPANY_POLICIES : has
-    COMPANIES ||--o{ LEAVE_TYPES : defines
 
     DEPARTMENTS ||--o{ POSITIONS : has
     DEPARTMENTS ||--o{ EMPLOYEES : contains
+    DEPARTMENTS }o--o| EMPLOYEES : headed_by
 
     BRANCHES ||--o{ EMPLOYEES : locates
 
@@ -26,12 +23,9 @@ erDiagram
 
     %% EMPLOYEE MANAGEMENT
     EMPLOYEES ||--o{ EMPLOYEE_CONTRACTS : has
-    EMPLOYEES ||--o{ EMPLOYEE_FAMILIES : has
-    EMPLOYEES ||--o{ EMPLOYEE_EDUCATIONS : has
-    EMPLOYEES ||--o{ EMPLOYEE_EXPERIENCES : has
-    EMPLOYEES ||--o{ EMPLOYEE_DOCUMENTS : has
-    EMPLOYEES ||--o{ EMPLOYEE_COMPETENCIES : has
     EMPLOYEES ||--o{ BANK_ACCOUNTS : has
+    EMPLOYEES ||--o{ ANNOUNCEMENTS : creates
+    EMPLOYEES ||--o{ APPROVAL_LOGS : performs
 
     %% ATTENDANCE & TIME MANAGEMENT
     EMPLOYEES ||--o{ ATTENDANCES : records
@@ -47,8 +41,6 @@ erDiagram
 
     %% PAYROLL
     EMPLOYEES ||--o{ PAYROLL_RECORDS : receives
-    EMPLOYEES ||--o{ SALARY_ADJUSTMENTS : has
-    EMPLOYEES ||--o{ LOAN_REQUESTS : submits
     EMPLOYEES ||--o{ REIMBURSEMENTS : claims
 
     PAYROLL_RECORDS ||--o{ PAYROLL_COMPONENTS : contains
@@ -65,13 +57,7 @@ erDiagram
 
     LEAVE_REQUESTS ||--o{ APPROVAL_LOGS : requires
     OVERTIME_REQUESTS ||--o{ APPROVAL_LOGS : requires
-    LOAN_REQUESTS ||--o{ APPROVAL_LOGS : requires
     REIMBURSEMENTS ||--o{ APPROVAL_LOGS : requires
-
-    EMPLOYEES ||--o{ APPROVAL_LOGS : approves
-
-    %% ORGANIZATIONAL
-    EMPLOYEES }o--|| EMPLOYEES : reports_to
 
     %% ANNOUNCEMENT & COMMUNICATION
     ANNOUNCEMENTS ||--o{ ANNOUNCEMENT_READS : tracked_by
@@ -79,386 +65,361 @@ erDiagram
 
     COMPANIES {
         int id PK
-        string company_name
-        string company_code
-        string tax_id
+        string company_name "NOT NULL"
+        string company_code "UNIQUE, NOT NULL"
+        string tax_id "UNIQUE"
         string address
         string phone
-        string email
+        string email "UNIQUE"
         date established_date
-        boolean is_active
+        boolean is_active "DEFAULT true"
+        datetime created_at
+        datetime updated_at
     }
 
     BRANCHES {
         int id PK
-        int company_id FK
-        string branch_name
-        string branch_code
+        int company_id FK "NOT NULL"
+        string branch_name "NOT NULL"
+        string branch_code "UNIQUE, NOT NULL"
         string address
         string city
         string province
         string postal_code
         string phone
-        boolean is_head_office
-        boolean is_active
+        boolean is_head_office "DEFAULT false"
+        boolean is_active "DEFAULT true"
+        datetime created_at
+        datetime updated_at
     }
 
     DEPARTMENTS {
         int id PK
-        int company_id FK
-        int parent_department_id FK
-        string department_name
-        string department_code
-        int head_employee_id FK
-        boolean is_active
+        int parent_department_id FK "NULL, SELF-REF"
+        string department_name "NOT NULL"
+        string department_code "UNIQUE, NOT NULL"
+        int head_employee_id FK "NULL"
+        boolean is_active "DEFAULT true"
+        datetime created_at
+        datetime updated_at
     }
 
     POSITIONS {
         int id PK
-        int department_id FK
-        int job_level_id FK
-        string position_name
-        string position_code
-        int reports_to_position_id FK
-        decimal min_salary
-        decimal max_salary
-        boolean is_active
+        int department_id FK "NOT NULL"
+        int job_level_id FK "NOT NULL"
+        string position_name "NOT NULL"
+        string position_code "UNIQUE, NOT NULL"
+        int reports_to_position_id FK "NULL, SELF-REF"
+        decimal min_salary "CHECK >= 0"
+        decimal max_salary "CHECK >= min_salary"
+        boolean is_active "DEFAULT true"
+        datetime created_at
+        datetime updated_at
     }
 
     JOB_LEVELS {
         int id PK
-        int company_id FK
-        string level_name
-        int level_order
+        string level_name "NOT NULL"
+        int level_order "UNIQUE per company"
         string description
+        datetime created_at
+        datetime updated_at
     }
 
     JOB_DESCRIPTIONS {
         int id PK
-        int position_id FK
+        int position_id FK "NOT NULL"
         text responsibilities
         text requirements
         text qualifications
-        date effective_date
-        boolean is_active
+        date effective_date "NOT NULL"
+        boolean is_active "DEFAULT true"
+        datetime created_at
+        datetime updated_at
     }
 
     EMPLOYEES {
         int id PK
-        string employee_number UK
-        string first_name
-        string last_name
-        string email UK
+        string employee_number "UNIQUE, NOT NULL"
+        string first_name "NOT NULL"
+        string last_name "NOT NULL"
+        string email "UNIQUE, NOT NULL"
         string phone
         date birth_date
-        string gender
-        string marital_status
-        string id_number
-        string tax_id
-        int position_id FK
-        int department_id FK
-        int branch_id FK
-        int manager_id FK
-        string employment_status
-        date join_date
+        string gender "CHECK IN (M,F,Other)"
+        string marital_status "CHECK IN values"
+        string id_number "UNIQUE"
+        string tax_id "UNIQUE"
+        int position_id FK "NOT NULL"
+        int department_id FK "NOT NULL"
+        int branch_id FK "NOT NULL"
+        int manager_employee_id FK "NULL, SELF-REF"
+        string employment_status "NOT NULL"
+        date join_date "NOT NULL"
         date permanent_date
         date resignation_date
         string photo_url
-        boolean is_active
+        boolean is_active "DEFAULT true"
+        _string user_roles "CHECK IN (ADMIN, EMPLOYEE)"
+        string user_password_hash "NOT NULL"
+        datetime user_last_activity_at
+        datetime created_at
+        datetime updated_at
     }
 
     EMPLOYEE_CONTRACTS {
         int id PK
-        int employee_id FK
-        string contract_type
-        date start_date
+        int employee_id FK "NOT NULL"
+        string contract_type "NOT NULL"
+        date start_date "NOT NULL"
         date end_date
-        decimal salary_amount
+        decimal salary_amount "NOT NULL"
         text terms_conditions
-        string status
-    }
-
-    EMPLOYEE_FAMILIES {
-        int id PK
-        int employee_id FK
-        string relationship
-        string full_name
-        date birth_date
-        string id_number
-        boolean is_emergency_contact
-    }
-
-    EMPLOYEE_EDUCATIONS {
-        int id PK
-        int employee_id FK
-        string degree_level
-        string institution
-        string major
-        int graduation_year
-        string certificate_url
-    }
-
-    EMPLOYEE_EXPERIENCES {
-        int id PK
-        int employee_id FK
-        string company_name
-        string position
-        date start_date
-        date end_date
-        text job_description
-    }
-
-    EMPLOYEE_DOCUMENTS {
-        int id PK
-        int employee_id FK
-        string document_type
-        string document_name
-        string file_url
-        date upload_date
-        date expiry_date
-    }
-
-    EMPLOYEE_COMPETENCIES {
-        int id PK
-        int employee_id FK
-        string competency_name
-        string competency_type
-        int proficiency_level
-        date assessment_date
+        string status "NOT NULL"
+        datetime created_at
+        datetime updated_at
     }
 
     BANK_ACCOUNTS {
         int id PK
-        int employee_id FK
-        string bank_name
-        string account_number
-        string account_holder_name
-        boolean is_primary
+        int employee_id FK "NOT NULL"
+        string bank_name "NOT NULL"
+        string account_number "NOT NULL"
+        string account_holder_name "NOT NULL"
+        boolean is_primary "DEFAULT false"
+        datetime created_at
+        datetime updated_at
     }
 
     ATTENDANCES {
         int id PK
-        int employee_id FK
-        date attendance_date
+        int employee_id FK "NOT NULL"
+        date attendance_date "NOT NULL"
         time check_in
         time check_out
         string location_in
         string location_out
-        string status
+        string status "NOT NULL"
         text notes
+        datetime created_at
+        datetime updated_at
     }
 
     OVERTIME_REQUESTS {
         int id PK
-        int employee_id FK
-        date overtime_date
-        time start_time
-        time end_time
-        decimal hours
+        int employee_id FK "NOT NULL"
+        date overtime_date "NOT NULL"
+        time start_time "NOT NULL"
+        time end_time "NOT NULL"
+        decimal hours "COMPUTED"
         text reason
-        string status
+        string status "NOT NULL, DEFAULT pending"
         datetime created_at
+        datetime updated_at
     }
 
     LEAVE_TYPES {
         int id PK
-        int company_id FK
-        string leave_name
-        int annual_quota
-        boolean is_paid
-        boolean requires_document
+        string leave_name "NOT NULL"
+        int annual_quota "DEFAULT 0"
+        boolean is_paid "DEFAULT true"
+        boolean requires_document "DEFAULT false"
         int max_consecutive_days
-        boolean is_active
+        boolean is_active "DEFAULT true"
+        datetime created_at
+        datetime updated_at
     }
 
     LEAVE_POLICIES {
         int id PK
-        int leave_type_id FK
+        int leave_type_id FK "NOT NULL"
         text policy_rules
-        int notice_period_days
-        date effective_date
+        int notice_period_days "DEFAULT 0"
+        date effective_date "NOT NULL"
+        datetime created_at
+        datetime updated_at
     }
 
     LEAVE_BALANCES {
         int id PK
-        int employee_id FK
-        int leave_type_id FK
-        int year
-        int entitled
-        int used
-        int remaining
+        int employee_id FK "NOT NULL"
+        int leave_type_id FK "NOT NULL"
+        int year "NOT NULL"
+        int entitled "DEFAULT 0"
+        int used "DEFAULT 0"
+        int remaining "COMPUTED"
+        datetime created_at
+        datetime updated_at
     }
 
     LEAVE_REQUESTS {
         int id PK
-        int employee_id FK
-        int leave_type_id FK
-        date start_date
-        date end_date
-        decimal total_days
+        int employee_id FK "NOT NULL"
+        int leave_type_id FK "NOT NULL"
+        date start_date "NOT NULL"
+        date end_date "NOT NULL"
+        decimal total_days "COMPUTED"
         text reason
         string document_url
-        string status
+        string status "NOT NULL, DEFAULT pending"
         datetime created_at
+        datetime updated_at
     }
 
     SALARY_STRUCTURES {
         int id PK
-        int position_id FK
-        decimal base_salary
-        date effective_date
-        boolean is_active
+        int position_id FK "NOT NULL"
+        decimal base_salary "NOT NULL"
+        date effective_date "NOT NULL"
+        boolean is_active "DEFAULT true"
+        datetime created_at
+        datetime updated_at
     }
 
     SALARY_COMPONENTS {
         int id PK
-        int structure_id FK
-        int component_type_id FK
-        string component_name
-        decimal amount
-        string calculation_type
-        boolean is_taxable
+        int structure_id FK "NOT NULL"
+        int component_type_id FK "NOT NULL"
+        string component_name "NOT NULL"
+        decimal amount "NOT NULL"
+        string calculation_type "NOT NULL"
+        boolean is_taxable "DEFAULT false"
+        datetime created_at
+        datetime updated_at
     }
 
     COMPONENT_TYPES {
         int id PK
-        string type_name
-        string category
-        boolean is_recurring
+        string type_name "UNIQUE, NOT NULL"
+        string category "NOT NULL"
+        boolean is_recurring "DEFAULT true"
+        datetime created_at
+        datetime updated_at
     }
 
     PAYROLL_RECORDS {
         int id PK
-        int employee_id FK
-        int period_month
-        int period_year
+        int employee_id FK "NOT NULL"
+        int period_month "CHECK 1-12"
+        int period_year "NOT NULL"
         date payment_date
-        decimal gross_salary
-        decimal total_deductions
-        decimal net_salary
-        string status
+        decimal gross_salary "NOT NULL"
+        decimal total_deductions "DEFAULT 0"
+        decimal net_salary "COMPUTED"
+        string status "NOT NULL"
         datetime processed_at
+        datetime created_at
+        datetime updated_at
     }
 
     PAYROLL_COMPONENTS {
         int id PK
-        int payroll_id FK
-        int component_type_id FK
-        string component_name
-        decimal amount
-        boolean is_taxable
+        int payroll_id FK "NOT NULL"
+        int component_type_id FK "NOT NULL"
+        string component_name "NOT NULL"
+        decimal amount "NOT NULL"
+        boolean is_taxable "DEFAULT false"
+        datetime created_at
+        datetime updated_at
     }
 
     PAYROLL_DEDUCTIONS {
         int id PK
-        int payroll_id FK
-        int deduction_type_id FK
-        string deduction_name
-        decimal amount
+        int payroll_id FK "NOT NULL"
+        int deduction_type_id FK "NOT NULL"
+        string deduction_name "NOT NULL"
+        decimal amount "NOT NULL"
+        datetime created_at
+        datetime updated_at
     }
 
     DEDUCTION_TYPES {
         int id PK
-        string type_name
-        string category
-        boolean is_mandatory
-    }
-
-    SALARY_ADJUSTMENTS {
-        int id PK
-        int employee_id FK
-        date effective_date
-        decimal old_salary
-        decimal new_salary
-        decimal adjustment_percentage
-        string adjustment_type
-        text reason
-        int approved_by FK
-    }
-
-    LOAN_REQUESTS {
-        int id PK
-        int employee_id FK
-        decimal loan_amount
-        int installment_months
-        decimal installment_amount
-        date start_date
-        decimal outstanding_balance
-        string status
-        text purpose
+        string type_name "UNIQUE, NOT NULL"
+        string category "NOT NULL"
+        boolean is_mandatory "DEFAULT false"
         datetime created_at
+        datetime updated_at
     }
 
     REIMBURSEMENTS {
         int id PK
-        int employee_id FK
-        string reimbursement_type
-        date expense_date
-        decimal amount
+        int employee_id FK "NOT NULL"
+        string reimbursement_type "NOT NULL"
+        date expense_date "NOT NULL"
+        decimal amount "NOT NULL"
         text description
         string receipt_url
-        string status
+        string status "NOT NULL, DEFAULT pending"
         datetime created_at
+        datetime updated_at
     }
 
     APPROVAL_WORKFLOWS {
         int id PK
-        int company_id FK
-        string workflow_name
-        string entity_type
+        string workflow_name "NOT NULL"
+        string entity_type "NOT NULL"
         text conditions
-        boolean is_active
+        boolean is_active "DEFAULT true"
+        datetime created_at
+        datetime updated_at
     }
 
     APPROVAL_STEPS {
         int id PK
-        int workflow_id FK
-        int step_order
-        string approver_type
-        int approver_id FK
-        boolean is_required
-        int escalation_hours
+        int approval_workflow_id FK "NOT NULL"
+        int step_order "NOT NULL"
+        string approver_type "NOT NULL"
+        int approver_id FK "NULL"
+        boolean is_required "DEFAULT true"
+        int escalation_hours "DEFAULT 24"
+        datetime created_at
+        datetime updated_at
     }
 
     APPROVAL_LOGS {
         int id PK
-        int workflow_id FK
-        int step_id FK
-        string entity_type
-        int entity_id
-        int approver_id FK
-        string action
+        int approval_workflow_id FK "NOT NULL"
+        int step_id FK "NOT NULL"
+        string entity_type "NOT NULL"
+        int entity_id "NOT NULL"
+        int approver_id FK "NOT NULL, REF EMPLOYEES"
+        string action "NOT NULL"
         text comments
-        datetime action_datetime
+        datetime action_datetime "NOT NULL"
+        datetime created_at
     }
 
     ANNOUNCEMENTS {
         int id PK
-        int company_id FK
-        string title
-        text content
-        string priority
-        date publish_date
+        string title "NOT NULL"
+        text content "NOT NULL"
+        string priority "DEFAULT normal"
+        date publish_date "NOT NULL"
         date expiry_date
-        int created_by FK
-        boolean is_active
+        int created_by FK "NOT NULL, REF EMPLOYEES"
+        boolean is_active "DEFAULT true"
+        datetime created_at
+        datetime updated_at
     }
 
     ANNOUNCEMENT_READS {
         int id PK
-        int announcement_id FK
-        int employee_id FK
-        datetime read_at
+        int announcement_id FK "NOT NULL"
+        int employee_id FK "NOT NULL"
+        datetime read_at "NOT NULL"
     }
 
     COMPANY_POLICIES {
         int id PK
-        int company_id FK
-        string policy_name
-        string policy_category
-        text policy_content
-        date effective_date
-        int version
-        boolean is_active
+        string policy_name "NOT NULL"
+        string policy_category "NOT NULL"
+        text policy_content "NOT NULL"
+        date effective_date "NOT NULL"
+        int version "DEFAULT 1"
+        boolean is_active "DEFAULT true"
+        datetime created_at
+        datetime updated_at
     }
 ```
