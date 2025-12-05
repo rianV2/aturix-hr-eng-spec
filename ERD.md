@@ -8,6 +8,7 @@ This ERD contains only the essential tables required for the HRIS, focusing on c
 erDiagram
     %% MASTER DATA
     COMPANIES ||--o{ BRANCHES : has
+    COMPANIES ||--o{ COMPANY_POLICIES : has
 
     DEPARTMENTS ||--o{ POSITIONS : has
     DEPARTMENTS ||--o{ EMPLOYEES : contains
@@ -50,6 +51,7 @@ erDiagram
     PAYROLL_DEDUCTIONS }o--|| DEDUCTION_TYPES : uses
 
     SALARY_STRUCTURES ||--o{ SALARY_COMPONENTS : defines
+    SALARY_COMPONENTS }o--|| COMPONENT_TYPES : categorizes
 
     %% APPROVAL WORKFLOWS
     APPROVAL_WORKFLOWS ||--o{ APPROVAL_STEPS : defines
